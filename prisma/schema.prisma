@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Note: SQLite doesn't support enums, so we use String type
+// Valid values are validated in application code:
+// - UserRole: "super_admin", "school_admin", "student"
+// - SchoolStatus: "pending", "active", "inactive"
+// - RegistrationStatus: "draft", "submitted", "verified", "rejected"
+// - FileType: "photo", "ijazah", "kartu_keluarga", "other"
+
+// Models
+model School {
+  id              Int       @id @default(autoincrement())
+  name            String
+  email           String    @unique
+  phone           String?
+  address         String?
+  npsn            String?
+  status          String    @default("pending")
+  verified_at     DateTime?
+  registration_link String? @unique
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  // Relationships
+  users           User[]
+  registrations   Registration[]
+
+  @@map("schools")
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String    @unique
+  email_verified_at DateTime?
+  password          String
+  role              String    // "super_admin", "school_admin", "student"
+  school_id         Int?      // Nullable because super_admin might not belong to a school
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  // Relationships
+  school            School?   @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  registrations     Registration[] // A user (student) can have registrations
+
+  @@map("users")
+}
+
+model Registration {
+  id              Int       @id @default(autoincrement())
+  student_id      Int
+  school_id       Int
+  program         String
+  academic_year   String
+  status          String    @default("draft") // "draft", "submitted", "verified", "rejected"
+  form_data       String    // Stored as JSON string, parse in code
+  
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  // Relationships
+  student         User      @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  school          School    @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  files           RegistrationFile[]
+
+  @@map("registrations")
+}
+
+model RegistrationFile {
+  id              Int       @id @default(autoincrement())
+  registration_id Int
+  file_type       String    // "photo", "ijazah", "kartu_keluarga", "other"
+  file_path       String
+  original_name   String
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  // Relationships
+  registration    Registration @relation(fields: [registration_id], references: [id], onDelete: Cascade)
+
+  @@map("registration_files")
+}
