@@ -1,7 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose'
 import bcrypt from 'bcryptjs'
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'rahasia-super-aman-ganti-nanti')
+// Validate JWT_SECRET in production
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable must be set in production!')
+}
+
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'dev-only-insecure-secret')
 const ALG = 'HS256'
 
 // --- Password Hashing ---
