@@ -83,11 +83,17 @@ export async function POST(request: Request) {
             }
         })
 
+        /*
+         * SECURITY NOTE: Password dikirim ke client untuk UX (siswa perlu tahu password awal).
+         * Mitigasi: HTTPS enforced by Vercel, password hanya ditampilkan sekali.
+         * Future enhancement: Kirim password via email instead.
+         */
         return NextResponse.json({
             message: 'Pendaftaran siswa berhasil!',
             student_account: {
                 email: user.email,
-                password: plainPassword // Return plain password so student can login
+                password: plainPassword,
+                warning: 'PENTING: Catat password ini! Password tidak akan ditampilkan lagi.'
             },
             user: {
                 id: user.id,
