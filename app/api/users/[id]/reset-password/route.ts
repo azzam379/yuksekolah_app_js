@@ -18,16 +18,26 @@ export async function POST(
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
         }
 
-        // Verify super_admin role
-        const { payload, error, status } = await requireRole(token, ['super_admin'])
+        // Verify role - super_admin or school_admin
+        const { payload, error, status } = await requireRole(token, ['super_admin', 'school_admin'])
         if (error) {
             return NextResponse.json({ message: error }, { status: status || 403 })
         }
 
         // Check if user exists
-        const user = await prisma.user.findUnique({ where: { id: userId } })
-        if (!user) {
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } })
+        if (!targetUser) {
             return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
+        }
+
+        // School admin can only reset password for students in their school
+        if (payload?.role === 'school_admin') {
+            if (targetUser.role !== 'student') {
+                return NextResponse.json({ message: 'School admin hanya dapat reset password siswa' }, { status: 403 })
+            }
+            if (targetUser.school_id !== payload.school_id) {
+                return NextResponse.json({ message: 'Siswa bukan dari sekolah Anda' }, { status: 403 })
+            }
         }
 
         // Generate new random password
