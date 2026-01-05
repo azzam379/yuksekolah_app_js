@@ -324,7 +324,7 @@ function StudentRegistrationContent() {
           </Link>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">Formulir Pendaftaran Siswa</h1>
           <p className="text-lg text-gray-600 font-medium">{schoolInfo?.name}</p>
-          <p className="text-sm text-gray-500 mt-1">Tahun Ajaran 2024/2025</p>
+          <p className="text-sm text-gray-500 mt-1">Tahun Ajaran 2026/2027</p>
         </div>
 
         {/* Progress Steps (Hidden on success) */}

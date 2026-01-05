@@ -106,7 +106,7 @@ export default function Footer() {
             </div>
             <div>
               <div className="text-sm text-gray-300 mb-1">Hubungi Kami</div>
-              <div className="font-semibold text-lg hover:text-primary-400 transition-colors cursor-pointer text-white">021-1234-5678</div>
+              <div className="font-semibold text-lg hover:text-primary-400 transition-colors cursor-pointer text-white">021-1234-5678 (example)</div>
             </div>
           </div>
 
@@ -116,7 +116,7 @@ export default function Footer() {
             </div>
             <div>
               <div className="text-sm text-gray-300 mb-1">Email Kami</div>
-              <div className="font-semibold text-lg hover:text-secondary-400 transition-colors cursor-pointer text-white">hello@yuksekolah.id</div>
+              <div className="font-semibold text-lg hover:text-secondary-400 transition-colors cursor-pointer text-white">hello@yuksekolah.id (example)</div>
             </div>
           </div>
 
@@ -126,7 +126,7 @@ export default function Footer() {
             </div>
             <div>
               <div className="text-sm text-gray-300 mb-1">Lokasi Kantor</div>
-              <div className="font-semibold text-lg text-white">Jakarta, Indonesia</div>
+              <div className="font-semibold text-lg text-white">Surakarta, Jawa Tengah, Indonesia</div>
             </div>
           </div>
         </div>
