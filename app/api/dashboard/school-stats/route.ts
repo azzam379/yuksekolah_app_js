@@ -1,25 +1,24 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { verifyJWT } from '@/lib/auth'
+import { requireRole, extractToken } from '@/lib/auth'
 
 export async function GET(request: Request) {
     try {
         // Get authorization header
-        const authHeader = request.headers.get('Authorization')
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const token = extractToken(request.headers.get('Authorization'))
+        if (!token) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
         }
 
-        const token = authHeader.split(' ')[1]
-        const payload = await verifyJWT(token)
-
-        if (!payload || !payload.id) {
-            return NextResponse.json({ message: 'Invalid token' }, { status: 401 })
+        // Verify role - only school_admin can access school stats
+        const { payload, error, status } = await requireRole(token, ['school_admin'])
+        if (error) {
+            return NextResponse.json({ message: error }, { status: status || 403 })
         }
 
         // Get user to find school_id
         const user = await prisma.user.findUnique({
-            where: { id: payload.id as number },
+            where: { id: payload?.id as number },
             include: { school: true }
         })
 

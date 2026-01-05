@@ -36,3 +36,43 @@ export async function verifyJWT(token: string) {
 export function getSessionFromToken(token: string) {
   return verifyJWT(token)
 }
+
+// --- Role-based Authorization ---
+
+interface AuthResult {
+  payload?: Record<string, any>
+  error?: string
+  status?: number
+}
+
+/**
+ * Verify JWT token and check if user has required role
+ * @param token - JWT token from Authorization header
+ * @param allowedRoles - Array of roles allowed to access the resource
+ * @returns AuthResult with payload if success, or error details if failed
+ */
+export async function requireRole(token: string, allowedRoles: string[]): Promise<AuthResult> {
+  const payload = await verifyJWT(token)
+
+  if (!payload) {
+    return { error: 'Token tidak valid atau expired', status: 401 }
+  }
+
+  if (!payload.role || !allowedRoles.includes(payload.role as string)) {
+    return { error: 'Akses ditolak. Anda tidak memiliki izin untuk resource ini.', status: 403 }
+  }
+
+  return { payload }
+}
+
+/**
+ * Extract token from Authorization header
+ * @param authHeader - Authorization header value
+ * @returns token string or null if invalid
+ */
+export function extractToken(authHeader: string | null): string | null {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
+  }
+  return authHeader.split(' ')[1]
+}

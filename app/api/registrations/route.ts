@@ -1,38 +1,46 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { verifyJWT } from '@/lib/auth'
+import { requireRole, extractToken } from '@/lib/auth'
 
 export async function GET(request: Request) {
     try {
         // Get authorization header
-        const authHeader = request.headers.get('Authorization')
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const token = extractToken(request.headers.get('Authorization'))
+        if (!token) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
         }
 
-        const token = authHeader.split(' ')[1]
-        const payload = await verifyJWT(token)
-
-        if (!payload || !payload.id) {
-            return NextResponse.json({ message: 'Invalid token' }, { status: 401 })
+        // Verify role - school_admin and super_admin can access registrations
+        const { payload, error, status } = await requireRole(token, ['school_admin', 'super_admin'])
+        if (error) {
+            return NextResponse.json({ message: error }, { status: status || 403 })
         }
 
         // Get user to find school_id
         const user = await prisma.user.findUnique({
-            where: { id: payload.id as number }
+            where: { id: payload?.id as number }
         })
 
-        if (!user || !user.school_id) {
-            return NextResponse.json({ message: 'User has no school' }, { status: 400 })
+        if (!user) {
+            return NextResponse.json({ message: 'User tidak ditemukan' }, { status: 404 })
         }
 
-        // Get all registrations for this school
+        // Super admin can see all registrations, school_admin only sees their school's
+        let whereClause = {}
+        if (user.role === 'school_admin' && user.school_id) {
+            whereClause = { school_id: user.school_id }
+        }
+
+        // Get registrations based on role
         const registrations = await prisma.registration.findMany({
-            where: { school_id: user.school_id },
+            where: whereClause,
             orderBy: { created_at: 'desc' },
             include: {
                 student: {
                     select: { id: true, name: true, email: true }
+                },
+                school: {
+                    select: { id: true, name: true }
                 }
             }
         })
